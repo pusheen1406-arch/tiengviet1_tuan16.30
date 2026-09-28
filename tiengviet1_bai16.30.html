@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="vi-VN" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
+    <title>Ôn Tập Tiếng Việt Lớp 1 (Tuần 16 - 30)</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin="script"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin="script"></script>
+    <script src="https://unpkg.com/@babel/standalone@7.23.6/babel.min.js"></script>
+
+    <!-- Thư viện ResponsiveVoice -->
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=FREE_KEY"></script>
+
+    <!-- Thư viện Bắn Pháo Hoa (Confetti) -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Font chữ Nunito -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Nunito', sans-serif; background-color: #f0fdf4; color: #1e293b; user-select: none; }
+        .kid-card { background: white; border-radius: 1.5rem; border: 4px solid #bbf7d0; box-shadow: 0 10px 25px -5px rgba(34, 197, 94, 0.2); }
+        .btn-3d { transition: all 0.1s; border-bottom-width: 4px; }
+        .btn-3d:active { transform: translateY(3px); border-bottom-width: 0px; }
+        .pulse-ring { animation: pulseRing 1.5s infinite; }
+        @keyframes pulseRing {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .dots-loading::after {
+            content: '...';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body class="p-2 sm:p-6 min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const ADMIN_PASSWORD_DEFAULT = "2002";
+        const STORAGE_KEY_DATA = "tv1_t16_30_data_v1";
+        const STORAGE_KEY_PASS = "tv1_t16_30_admin_pass_v1";
+        const STORAGE_KEY_HISTORY = "tv1_t16_30_history_v1";
+        const STORAGE_KEY_PASS_THRESH = "tv1_t16_30_pass_thresh_v1";
+        const STORAGE_KEY_PERFECT_THRESH = "tv1_t16_30_perfect_thresh_v1";
+
+        const cleanStr = (str) => str ? str.toLowerCase().replace(/[.,!?]/g, "").trim() : "";
+
+        // DỮ LIỆU PHẦN 1: TỪ ĐƠN & TỪ ĐÔI (Từ file Word Tuần 16 - 30)
+        const rawPart1Database = [
+            // Từ đơn cơ bản
+            { word: "lọ", spell: "lờ o lo nặng lọ, lọ" },
+            { word: "mỡ", spell: "mờ ơ mơ ngã mỡ, mỡ" },
+            { word: "mơ", spell: "mờ ơ mơ, mơ" },
+            { word: "mè", spell: "mờ e me huyền mè, mè" },
+            { word: "nơ", spell: "nờ ơ nơ, nơ" },
+            { word: "nê", spell: "nờ ê nê, nê" },
+            { word: "gà", spell: "gờ a ga huyền gà, gà" },
+            { word: "mẹ", spell: "mờ e me nặng mẹ, mẹ" },
+            { word: "giò", spell: "giờ o gio huyền giò, giò" },
+            { word: "chả", spell: "chờ a cha hỏi chả, chả" },
+            { word: "giá", spell: "giờ a gia sắc giá, giá" },
+            { word: "đỗ", spell: "đờ ô đô ngã đỗ, đỗ" },
+            { word: "gỗ", spell: "gờ ô gô ngã gỗ, gỗ" },
+            { word: "ghế", spell: "ghờ ê ghê sắc ghế, ghế" },
+            { word: "ngô", spell: "ngờ ô ngô, ngô" },
+            { word: "nghệ", spell: "nghờ ê nghe nặng nghệ, nghệ" },
+            { word: "xe", spell: "xờ e xe, xe" },
+            { word: "lu", spell: "lờ u lu, lu" },
+            { word: "sứ", spell: "sờ u su sắc sứ, sứ" },
+            { word: "sĩ", spell: "sờ i si ngã sĩ, sĩ" },
+            { word: "trà", spell: "trờ a tra huyền trà, trà" },
+            { word: "đá", spell: "đờ a đa sắc đá, đá" },
+            { word: "thơ", spell: "thờ ơ thơ, thơ" },
+            { word: "mía", spell: "mờ ia mia sắc mía, mía" },
+            { word: "cua", spell: "cờ ua cua, cua" },
+            { word: "phở", spell: "phờ ơ phơ hỏi phở, phở" },
+            { word: "bò", spell: "bờ o bo huyền bò, bò" },
+            { word: "quà", spell: "quờ a qua huyền quà, quà" },
+            { word: "quế", spell: "quờ ê quê sắc quế, quế" },
+            { word: "vẽ", spell: "vờ e ve ngã vẽ, vẽ" },
+            { word: "sò", spell: "sờ o so huyền sò, sò" },
+            { word: "ý", spell: "y sắc ý, ý" },
+
+            // Các từ đôi (Từ file Word)
+            { word: "lọ mỡ", spell: "lờ o lo nặng lọ, mờ ơ mơ ngã mỡ, lọ mỡ" },
+            { word: "no nê", spell: "nờ o no, nờ ê nê, no nê" },
+            { word: "lá mơ", spell: "lờ a la sắc lá, mờ ơ mơ, lá mơ" },
+            { word: "cá mè", spell: "cờ a ca sắc cá, mờ e me huyền mè, cá mè" },
+            { word: "nơ đỏ", spell: "nờ ơ nơ, đờ o đo hỏi đỏ, nơ đỏ" },
+            { word: "bó mạ", spell: "bờ ô bo sắc bó, mờ a ma nặng mạ, bó mạ" },
+            { word: "lề mề", spell: "lờ ê lê huyền lề, mờ ê mê huyền mề, lề mề" },
+            { word: "ca nô", spell: "cờ a ca, nờ ô nô, ca nô" },
+            { word: "gà mẹ", spell: "gờ a ga huyền gà, mờ e me nặng mẹ, gà mẹ" },
+            { word: "giò chả", spell: "giờ o gio huyền giò, chờ a cha hỏi chả, giò chả" },
+            { word: "giá đỗ", spell: "giờ a gia sắc giá, đờ ô đô ngã đỗ, giá đỗ" },
+            { word: "gia vị", spell: "giờ a gia, vờ i vi nặng vị, gia vị" },
+            { word: "gỗ gụ", spell: "gờ ô gô ngã gỗ, gờ u gu nặng gụ, gỗ gụ" },
+            { word: "dự giờ", spell: "dờ ư dư nặng dự, giờ ơ giơ huyền giờ, dự giờ" },
+            { word: "gõ mõ", spell: "gờ o go ngã gõ, mờ o mo ngã mõ, gõ mõ" },
+            { word: "giỏ cá", spell: "giờ o gio hỏi giỏ, cờ a ca sắc cá, giỏ cá" },
+            { word: "ghè đá", spell: "ghờ e ghe huyền ghè, đờ a đa sắc đá, ghè đá" },
+            { word: "nhà cổ", spell: "nhờ a nha huyền nhà, cờ ô cô hỏi cổ, nhà cổ" },
+            { word: "gồ ghề", spell: "gờ ô gô huyền gồ, ghờ ê ghê huyền ghề, gồ ghề" },
+            { word: "nhỏ nhẹ", spell: "nhờ o nho hỏi nhỏ, nhờ e nhẹ nặng nhẹ, nhỏ nhẹ" },
+            { word: "ghi nhớ", spell: "ghờ i ghi, nhờ ơ nhơ sắc nhớ, ghi nhớ" },
+            { word: "nhỏ bé", spell: "nhờ o nho hỏi nhỏ, bờ e be sắc bé, nhỏ bé" },
+            { word: "ghế gỗ", spell: "ghờ ê ghê sắc ghế, gờ ô gô ngã gỗ, ghế gỗ" },
+            { word: "nho khô", spell: "nhờ o nho, khờ ô khô, nho khô" },
+            { word: "lá ngô", spell: "lờ a la sắc lá, ngờ ô ngô, lá ngô" },
+            { word: "củ nghệ", spell: "cờ u cu hỏi củ, nghờ ê nghe nặng nghệ, củ nghệ" },
+            { word: "nghỉ lễ", spell: "nghờ i nghi hỏi nghỉ, lờ ê lê ngã lễ, nghỉ lễ" },
+            { word: "ngã ba", spell: "ngờ a nga ngã ngã, bờ a ba, ngã ba" },
+            { word: "nghỉ hè", spell: "nghờ i nghi hỏi nghỉ, hờ e he huyền hè, nghỉ hè" },
+            { word: "cá ngừ", spell: "cờ a ca sắc cá, ngờ ư ngư huyền ngừ, cá ngừ" },
+            { word: "ngô nghệ", spell: "ngờ ô ngô, nghờ ê nghe nặng nghệ, ngô nghệ" },
+            { word: "đề nghị", spell: "đờ ê đê huyền đề, nghờ i nghi nặng nghị, đề nghị" },
+            { word: "nhà ga", spell: "nhờ a nha huyền nhà, gờ a ga, nhà ga" },
+            { word: "ngõ nhỏ", spell: "ngờ o ngo ngã ngõ, nhờ o nho hỏi nhỏ, ngõ nhỏ" },
+            { word: "giá đỡ", spell: "giờ a gia sắc giá, đờ ơ đơ ngã đỡ, giá đỡ" },
+            { word: "nhổ cỏ", spell: "nhờ ô nho hỏi nhổ, cờ o co hỏi cỏ, nhổ cỏ" },
+            { word: "bố mẹ", spell: "bờ ô bô sắc bố, mờ e me nặng mẹ, bố mẹ" },
+            { word: "nhà lá", spell: "nhờ a nha huyền nhà, lờ a la sắc lá, nhà lá" },
+            { word: "nghé ọ", spell: "nghờ e nghe sắc nghé, o nặng ọ, nghé ọ" },
+            { word: "ghế đá", spell: "ghờ ê ghê sắc ghế, đờ a đa sắc đá, ghế đá" },
+            { word: "bó rạ", spell: "bờ ô bo sắc bó, rờ a ra nặng rạ, bó rạ" },
+            { word: "lọ sứ", spell: "lờ o lo nặng lọ, sờ u su sắc sứ, lọ sứ" },
+            { word: "nở rộ", spell: "nờ ơ nơ hỏi nở, rờ ô ro nặng rộ, nở rộ" },
+            { word: "sơ mi", spell: "sờ ơ sơ, mờ i mi, sơ mi" },
+            { word: "sĩ số", spell: "sờ i si ngã sĩ, sờ ô sô sắc số, sĩ số" },
+            { word: "gà ri", spell: "gờ a ga huyền gà, rờ i ri, gà ri" },
+            { word: "ca sĩ", spell: "cờ a ca, sờ i si ngã sĩ, ca sĩ" },
+            { word: "rễ đa", spell: "rờ ê rê ngã rễ, đờ a đa, rễ đa" },
+            { word: "tổ cò", spell: "tờ ô tô hỏi tổ, cờ o co huyền cò, tổ cò" },
+            { word: "cá trê", spell: "cờ a ca sắc cá, trờ ê trê, cá trê" },
+            { word: "củ từ", spell: "cờ u cu hỏi củ, tờ ư tư huyền từ, củ từ" },
+            { word: "nhà trẻ", spell: "nhờ a nha huyền nhà, trờ e tre hỏi trẻ, nhà trẻ" },
+            { word: "tre ngà", spell: "trờ e tre, ngờ a nga huyền ngà, tre ngà" },
+            { word: "tủ gỗ", spell: "tờ u tu hỏi tủ, gờ ô gô ngã gỗ, tủ gỗ" },
+            { word: "trí nhớ", spell: "trờ i tri sắc trí, nhờ ơ nhơ sắc nhớ, trí nhớ" },
+            { word: "trà đá", spell: "trờ a tra huyền trà, đờ a đa sắc đá, trà đá" },
+            { word: "thơ ca", spell: "thờ ơ thơ, cờ a ca, thơ ca" },
+            { word: "bia đá", spell: "bờ ia bia, đờ a đa sắc đá, bia đá" },
+            { word: "thả cá", spell: "thờ a tha hỏi thả, cờ a ca sắc cá, thả cá" },
+            { word: "tía tô", spell: "tờ ia tia sắc tía, tờ ô tô, tía tô" },
+            { word: "đỏ tía", spell: "đờ o đo hỏi đỏ, tờ ia tia sắc tía, đỏ tía" },
+            { word: "sở thú", spell: "sờ ơ sơ hỏi sở, thờ u thu sắc thú, sở thú" },
+            { word: "lá mía", spell: "lờ a la sắc lá, mờ ia mia sắc mía, lá mía" },
+            { word: "thợ nề", spell: "thờ ơ thơ nặng thợ, nờ ê nê huyền nề, thợ nề" },
+            { word: "dưa bở", spell: "dờ ưa dưa, bờ ơ bơ hỏi bở, dưa bở" },
+            { word: "mùa thu", spell: "mờ ua mua huyền mùa, thờ u thu, mùa thu" },
+            { word: "cua cá", spell: "cờ ua cua, cờ a ca sắc cá, cua cá" },
+            { word: "cửa sổ", spell: "cờ ưa cư xơ hỏi cửa, sờ ô sô hỏi sổ, cửa sổ" },
+            { word: "chú rùa", spell: "chờ u chu sắc chú, rờ ua rua huyền rùa, chú rùa" },
+            { word: "nô đùa", spell: "nờ ô nô, đờ ua đua huyền đùa, nô đùa" },
+            { word: "lửa đỏ", spell: "lờ ưa lưa hỏi lửa, đờ o đo hỏi đỏ, lửa đỏ" },
+            { word: "sữa chua", spell: "sờ ưa xưa ngã sữa, chờ ua chua, sữa chua" },
+            { word: "rùa bò", spell: "rờ ua rua huyền rùa, bờ o bo huyền bò, rùa bò" },
+            { word: "thú dữ", spell: "thờ u thu sắc thú, dờ ư dư ngã dữ, thú dữ" },
+            { word: "đũa cả", spell: "đờ ua đua ngã đũa, cờ a ca hỏi cả, đũa cả" },
+            { word: "thi đua", spell: "thờ i thi, đờ ua đua, thi đua" },
+            { word: "xưa kia", spell: "xờ ưa xưa, ka ia kia, xưa kia" },
+            { word: "tò mò", spell: "tờ o to huyền tò, mờ o mo huyền mò, tò mò" },
+            { word: "gió mùa", spell: "giờ o gio sắc gió, mờ ua mua huyền mùa, gió mùa" },
+            { word: "trú mưa", spell: "trờ u tru sắc trú, mờ ưa mưa, trú mưa" },
+            { word: "cà phê", spell: "cờ a ca huyền cà, phờ ê phe, cà phê" },
+            { word: "tổ quạ", spell: "tờ ô tô hỏi tổ, quờ a qua nặng quạ, tổ quạ" },
+            { word: "đi phà", spell: "đờ i đi, phờ a pha huyền phà, đi phà" },
+            { word: "chả quế", spell: "chờ a cha hỏi chả, quờ ê quê sắc quế, chả quế" },
+            { word: "cá quả", spell: "cờ a ca sắc cá, quờ a qua hỏi quả, cá quả" },
+            { word: "phá cỗ", spell: "phờ a pha sắc phá, cờ ô cô ngã cỗ, phá cỗ" },
+            { word: "khu phố", spell: "khờ u khu, phờ ô phô sắc phố, khu phố" },
+            { word: "quà quê", spell: "quờ a qua huyền quà, quờ ê quê, quà quê" },
+            { word: "ngũ quả", spell: "ngờ u ngu ngã ngũ, quờ a qua hỏi quả, ngũ quả" },
+            { word: "võ sĩ", spell: "vờ o vo ngã võ, sờ i si ngã sĩ, võ sĩ" },
+            { word: "xe chỉ", spell: "xờ e xe, chờ i chi hỏi chỉ, xe chỉ" },
+            { word: "xe lu", spell: "xờ e xe, lờ u lu, xe lu" },
+            { word: "va li", spell: "vờ a va, lờ i li, va li" },
+            { word: "thợ xẻ", spell: "thờ ơ thơ nặng thợ, xờ e xe hỏi xẻ, thợ xẻ" },
+            { word: "vở vẽ", spell: "vờ ơ vơ hỏi vở, vờ e ve ngã vẽ, vở vẽ" },
+            { word: "lò xo", spell: "lờ o lo huyền lò, xờ o xo, lò xo" },
+            { word: "vỏ sò", spell: "vờ o vo hỏi vỏ, sờ o so huyền sò, vỏ sò" },
+            { word: "y sĩ", spell: "y, sờ i si ngã sĩ, y sĩ" },
+            { word: "ngụ ý", spell: "ngờ u ngu nặng ngụ, y sắc ý, ngụ ý" },
+            { word: "y tế", spell: "y, tờ ê tê sắc tế, y tế" },
+            { word: "chú ý", spell: "chờ u chu sắc chú, y sắc ý, chú ý" },
+            { word: "như ý", spell: "nhờ ư như, y sắc ý, như ý" },
+            { word: "quý giá", spell: "quờ y quy sắc quý, giờ a gia sắc giá, quý giá" },
+            { word: "ý tứ", spell: "y sắc ý, tờ ư tư sắc tứ, ý tứ" },
+            { word: "phở bò", spell: "phờ ơ phơ hỏi phở, bờ o bo huyền bò, phở bò" },
+            { word: "quà quý", spell: "quờ a qua huyền quà, quờ y quy sắc quý, quà quý" },
+            { word: "chia sẻ", spell: "chờ ia chia, sờ e se hỏi sẻ, chia sẻ" },
+            { word: "vé xe", spell: "vờ e ve sắc vé, xờ e xe, vé xe" },
+            { word: "vỗ về", spell: "vờ ô vo ngã vỗ, vờ ê vê huyền về, vỗ về" },
+            { word: "xà cừ", spell: "xờ a xa huyền xà, cờ ư cư huyền cừ, xà cừ" },
+            { word: "ý chí", spell: "y sắc ý, chờ i chi sắc chí, ý chí" },
+            { word: "cua đá", spell: "cờ ua cua, đờ a đa sắc đá, cua đá" }
+        ];
+
+        // DỮ LIỆU PHẦN 2: CÂU VÀ ĐOẠN VĂN (Đã chia nhỏ tối đa 6 chữ cho học sinh lớp 1)
+        const rawPart2Database = [
+            "Bé Chi có mũ nỉ đỏ.",
+            "Dì đi đò.",
+            "Bố mẹ đi ca nô.",
+            "Dì Na ủ giá đỗ.",
+            "Mẹ gỡ cá cho bé.",
+            "Bé bê ghế cho mẹ.",
+            "Bà cho bé nho khô.",
+            "Nhà bà ở ngõ nhỏ.",
+            "Nghỉ lễ nhà Nga đi hồ.",
+            "Nhà Nga đi hồ Ba Bể.",
+            "Nhà Hà ở chợ Mơ.",
+            "Bố chở bà đi nhà ga.",
+            "Ngõ nhà bà nho nhỏ.",
+            "Cô Na cho bé quả sơ ri.",
+            "Quả sơ ri đỏ.",
+            "Bà cho nhà bé sò.",
+            "Bà cho gà ri, su su.",
+            "Chị Nga tô lá cờ đỏ.",
+            "Ngõ nhỏ nhà bé.",
+            "Nhà bé có tre ngà.",
+            "Chú Tư là thợ mỏ.",
+            "Chị Nga có thìa.",
+            "Hà có đĩa nhỏ.",
+            "Bố cho Hà ra hồ.",
+            "Hà ra hồ thả cá.",
+            "Hà thỏ thẻ.",
+            "Hồ to bố nhỉ?",
+            "Bố cho bé thả cá rô.",
+            "Mẹ ru bé ngủ trưa.",
+            "Gió lùa qua khe cửa sổ.",
+            "Bà đưa bé đi chợ.",
+            "Ở chợ có đủ thứ.",
+            "Chợ có cua, cá, giò.",
+            "Bà mua cá kho dưa chua.",
+            "Lá khế khẽ đu đưa.",
+            "Bố đưa cả nhà đi chơi.",
+            "Cả nhà đi hồ Ba Bể.",
+            "Mẹ che ô cho em bé.",
+            "Em bé đỡ mưa.",
+            "Nhà bà có chú chó to.",
+            "Chó ngủ ở hè giữ nhà.",
+            "Hễ có gì lạ.",
+            "Chú sủa rõ to.",
+            "Mẹ pha cà phê cho bố.",
+            "Hà mê chả quế.",
+            "Hà mê cá quả kho.",
+            "Bố mẹ cho Hà ra phố.",
+            "Ở phố có sở thú.",
+            "Ở phố có nhà ga, ô tô.",
+            "Bố cho bé ghé Bờ Hồ.",
+            "Bố mua tò he cho bé.",
+            "Bé Hà chỉ trỏ.",
+            "A, lạ ghê bố nhỉ!",
+            "Bố cổ vũ bé đi thi vẽ.",
+            "Chú Tư chỉ cho bé vẽ.",
+            "Bé vẽ chú chó xù.",
+            "Dì Na mua va li.",
+            "Va li của Hà nho nhỏ.",
+            "Mẹ chở chị Nga đi phố.",
+            "Nhà có bà và bé Hà.",
+            "Khi Hà nhớ mẹ.",
+            "Bà bế bé ra ngõ.",
+            "Bà bế bé chờ mẹ về.",
+            "Thu về, dã quỳ nở rộ.",
+            "Bé chú ý nghe bà kể.",
+            "Mẹ Hà là y tá ở xã.",
+            "Bé bị ho.",
+            "Bố bế bé ra y tế xã.",
+            "Cô y tá ghi sổ y bạ.",
+            "Cô đưa sổ y bạ cho bố.",
+            "Mẹ ru khe khẽ.",
+            "Mẹ ru cho bé ngủ.",
+            "Đi qua ngõ nhỏ.",
+            "Ngõ nhỏ về nhà bà.",
+            "Từ quê ra, bà có quà.",
+            "Bà có quà cho cả nhà.",
+            "Mẹ cho bé đi ô tô.",
+            "Bé đi ô tô về quê bà.",
+            "Quê bà ở Phú Thọ.",
+            "Quê bà có chè và cọ.",
+            "Lá cọ to như ô che.",
+            "Quả cọ bà để kho cá."
+        ];
+
+        // DỮ LIỆU PHẦN 3: NGHE & GÕ (TỪ ĐÔI 2 CHỮ & CÂU DƯỚI 6 CHỮ)
+        const rawPart3Database = [
+            ...rawPart1Database.filter(item => item.word.trim().includes(" ") && item.word.trim().split(/\s+/).length === 2).map(item => item.word),
+            ...rawPart2Database.filter(sentence => sentence.trim().split(/\s+/).length <= 6)
+        ];
+
+        const generateQuestionsList = (baseList, targetCount) => {
+            let result = [...baseList];
+            result.sort(() => Math.random() - 0.5);
+            while (result.length < targetCount) { result = result.concat(baseList); }
+            return result.slice(0, targetCount);
+        };
+
+        const initialRawData = {
+            p1Count: 10, p2Count: 10, p3Count: 10,
+            part1: generateQuestionsList(rawPart1Database, 10),
+            part2: generateQuestionsList(rawPart2Database, 10),
+            part3: generateQuestionsList(rawPart3Database, 10)
+        };
+
+        // HÀM CHẤM ĐIỂM: Luôn đánh giá cao, khuyến khích học sinh Lớp 1
+        const calculateWordScore = (spoken, wordObj) => {
+            const spokenClean = cleanStr(spoken); 
+            if (!spokenClean) return 0; 
+            return 95; 
+        };
+
+        const calculateSentenceScore = (spoken, targetSentence) => {
+            const spokenClean = cleanStr(spoken); 
+            if (!spokenClean) return 0; 
+            return 95; 
+        };
+
+        const speakText = async (text, rate = 0.85) => {
+            if (!text) return;
+            if (window.responsiveVoice && window.responsiveVoice.isPlaying()) window.responsiveVoice.cancel();
+            if (window.currentAudio) { window.currentAudio.pause(); window.currentAudio = null; }
+            if (window.responsiveVoice) { window.responsiveVoice.speak(text, "Vietnamese Female", { rate: rate }); return; }
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'vi-VN'; utterance.rate = rate; window.speechSynthesis.speak(utterance);
+            }
+        };
+
+        const triggerFireworks = () => {
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 150, angle: 60, spread: 80, origin: { x: 0, y: 0.8 }, zIndex: 100 });
+                confetti({ particleCount: 150, angle: 120, spread: 80, origin: { x: 1, y: 0.8 }, zIndex: 100 });
+            }
+        };
+
+        const triggerMegaFireworks = () => {
+            if (typeof confetti === 'function') {
+                const duration = 3 * 1000; const animationEnd = Date.now() + duration; const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+                const interval = setInterval(function() {
+                    const timeLeft = animationEnd - Date.now();
+                    if (timeLeft <= 0) return clearInterval(interval);
+                    const particleCount = 50 * (timeLeft / duration);
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random() * (0.9 - 0.1) + 0.1, y: Math.random() - 0.2 } }));
+                }, 250);
+            }
+        };
+
+        const App = () => {
+            const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem(STORAGE_KEY_PASS) || ADMIN_PASSWORD_DEFAULT);
+            const [data, setData] = useState(() => {
+                const saved = localStorage.getItem(STORAGE_KEY_DATA);
+                if (saved) { try { return JSON.parse(saved); } catch (e) {} }
+                return initialRawData;
+            });
+            const [completedHistory, setCompletedHistory] = useState(() => {
+                const savedHistory = localStorage.getItem(STORAGE_KEY_HISTORY);
+                if (savedHistory) { try { return JSON.parse(savedHistory); } catch (e) {} }
+                return { p1: [], p2: [], p3: [] };
+            });
+
+            const [passThreshold, setPassThreshold] = useState(() => {
+                const saved = localStorage.getItem(STORAGE_KEY_PASS_THRESH);
+                return saved !== null ? Number(saved) : 30;
+            }); 
+            const [perfectThreshold, setPerfectThreshold] = useState(() => {
+                const saved = localStorage.getItem(STORAGE_KEY_PERFECT_THRESH);
+                return saved !== null ? Number(saved) : 60;
+            }); 
+
+            const [activeTab, setActiveTab] = useState('p1');
+            const [indices, setIndices] = useState({ p1: 0, p2: 0, p3: 0 });
+            const [scores, setScores] = useState({ p1: 0, p2: 0, p3: 0 });
+            const [isCompleted, setIsCompleted] = useState({ p1: false, p2: false, p3: false });
+            const [showMilestone, setShowMilestone] = useState(false);
+
+            const [isListening, setIsListening] = useState(false);
+            const [spokenText, setSpokenText] = useState("");
+            const [feedbackState, setFeedbackState] = useState({ status: null, msg: '' });
+            const [p3Input, setP3Input] = useState("");
+            const [reviewModal, setReviewModal] = useState({ open: false, part: null });
+
+            const [isAdminAuth, setIsAdminAuth] = useState(false);
+            const [passInput, setPassInput] = useState('');
+            const [loginError, setLoginError] = useState('');
+
+            const recognitionRef = useRef(null);
+            const activeTabRef = useRef(activeTab);
+            const indicesRef = useRef(indices);
+            const passThresholdRef = useRef(passThreshold);
+            const perfectThresholdRef = useRef(perfectThreshold);
+
+            useEffect(() => { activeTabRef.current = activeTab; }, [activeTab]);
+            useEffect(() => { indicesRef.current = indices; }, [indices]);
+            useEffect(() => { passThresholdRef.current = passThreshold; }, [passThreshold]);
+            useEffect(() => { perfectThresholdRef.current = perfectThreshold; }, [perfectThreshold]);
+            
+            useEffect(() => { localStorage.setItem(STORAGE_KEY_DATA, JSON.stringify(data)); }, [data]);
+            useEffect(() => { localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(completedHistory)); }, [completedHistory]);
+            useEffect(() => { localStorage.setItem(STORAGE_KEY_PASS_THRESH, passThreshold); }, [passThreshold]);
+            useEffect(() => { localStorage.setItem(STORAGE_KEY_PERFECT_THRESH, perfectThreshold); }, [perfectThreshold]);
+
+            useEffect(() => {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (SpeechRecognition) {
+                    const rec = new SpeechRecognition(); rec.lang = 'vi-VN'; rec.interimResults = false; rec.maxAlternatives = 1;
+                    rec.onstart = () => { setIsListening(true); setSpokenText(""); setFeedbackState({ status: null, msg: '' }); };
+                    rec.onend = () => setIsListening(false);
+                    rec.onresult = (event) => {
+                        const transcript = event.results[0][0].transcript;
+                        setSpokenText(transcript); checkSpeechResult(transcript);
+                    };
+                    rec.onerror = () => setIsListening(false);
+                    recognitionRef.current = rec;
+                }
+            }, [activeTab, indices, data]);
+
+            const toggleListening = () => {
+                if (!recognitionRef.current) return alert("Trình duyệt không hỗ trợ micro. Dùng Google Chrome nhé!");
+                isListening ? recognitionRef.current.stop() : recognitionRef.current.start();
+            };
+
+            const checkSpeechResult = (transcript) => {
+                const currentTab = activeTabRef.current;
+                const curIdx = indicesRef.current[currentTab];
+                const currentPassThreshold = passThresholdRef.current;
+                const currentPerfectThreshold = perfectThresholdRef.current;
+
+                if (currentTab === 'p1') {
+                    const currentObj = data.part1[curIdx];
+                    const percent = calculateWordScore(transcript, currentObj);
+                    const targetWord = cleanStr(currentObj?.word);
+
+                    if (percent >= currentPassThreshold) {
+                        setScores(prev => { const newScore = prev.p1 + 1; if (newScore > 0 && newScore % 10 === 0) { triggerMegaFireworks(); setShowMilestone(true); } return { ...prev, p1: newScore }; });
+                        setCompletedHistory(prev => { if (!prev.p1.includes(targetWord)) return { ...prev, p1: [...prev.p1, targetWord] }; return prev; });
+                        const successMsg = percent >= currentPerfectThreshold ? `✔️ Tuyệt vời! Bé đọc rất xuất sắc!` : `✔️ Bé đọc rất tốt!`;
+                        setFeedbackState({ status: 'correct', msg: successMsg });
+                    } else { setFeedbackState({ status: 'wrong', msg: `❌ AI nghe được: "${transcript}". Bé hãy thử đọc lại nhé!` }); }
+                } else if (currentTab === 'p2') {
+                    const targetSentenceOrigin = data.part2[curIdx];
+                    const percent = calculateSentenceScore(transcript, targetSentenceOrigin);
+                    const targetSentence = cleanStr(targetSentenceOrigin);
+
+                    if (percent >= currentPassThreshold) {
+                        setScores(prev => { const newScore = prev.p2 + 1; if (newScore > 0 && newScore % 10 === 0) { triggerMegaFireworks(); setShowMilestone(true); } return { ...prev, p2: newScore }; });
+                        setCompletedHistory(prev => { if (!prev.p2.includes(targetSentenceOrigin)) return { ...prev, p2: [...prev.p2, targetSentenceOrigin] }; return prev; });
+                        const successMsg = percent >= currentPerfectThreshold ? `✔️ Rất xuất sắc! Bé đọc câu tuyệt vời!` : `✔️ Bé đọc câu rất tốt!`;
+                        setFeedbackState({ status: 'correct', msg: successMsg });
+                    } else { setFeedbackState({ status: 'wrong', msg: `❌ AI nghe được: "${transcript}". Bé hãy đọc lại nhé!` }); }
+                }
+            };
+
+            useEffect(() => {
+                if (activeTab === 'p3' && !isCompleted.p3 && data.part3[indices.p3]) {
+                    speakText(data.part3[indices.p3], 0.6); setFeedbackState({ status: null, msg: '' }); setP3Input('');
+                }
+            }, [indices.p3, activeTab, isCompleted.p3]);
+
+            const checkP3Answer = (e) => {
+                if (e) e.preventDefault(); if (feedbackState.status === 'correct') return;
+                const targetOrigin = data.part3[indices.p3]; const target = cleanStr(targetOrigin); const studentAnswer = cleanStr(p3Input);
+
+                if (target === studentAnswer) {
+                    triggerFireworks();
+                    setScores(prev => { const newScore = prev.p3 + 1; if (newScore > 0 && newScore % 10 === 0) { triggerMegaFireworks(); setShowMilestone(true); } return { ...prev, p3: newScore }; });
+                    setCompletedHistory(prev => { if (!prev.p3.includes(targetOrigin)) return { ...prev, p3: [...prev.p3, targetOrigin] }; return prev; });
+                    setFeedbackState({ status: 'correct', msg: '🎉 Bé giỏi lắm! Bé trả lời đúng rồi! (+1 điểm)' });
+                } else { setFeedbackState({ status: 'wrong', msg: '❌ Chưa đúng rồi, bé hãy kiểm tra lại chữ vừa gõ nhé!' }); }
+            };
+
+            const nextQuestion = (tab) => {
+                setFeedbackState({ status: null, msg: '' }); setSpokenText(''); setP3Input('');
+                if (tab === 'p1') { indices.p1 < data.part1.length - 1 ? setIndices(prev => ({ ...prev, p1: prev.p1 + 1 })) : setIsCompleted(prev => ({ ...prev, p1: true })); }
+                else if (tab === 'p2') { indices.p2 < data.part2.length - 1 ? setIndices(prev => ({ ...prev, p2: prev.p2 + 1 })) : setIsCompleted(prev => ({ ...prev, p2: true })); }
+                else if (tab === 'p3') { indices.p3 < data.part3.length - 1 ? setIndices(prev => ({ ...prev, p3: prev.p3 + 1 })) : setIsCompleted(prev => ({ ...prev, p3: true })); }
+            };
+
+            const rollDiceNewQuestion = (tab) => {
+                setFeedbackState({ status: null, msg: '' }); setSpokenText(''); setP3Input('');
+                if (tab === 'p1') { const rnd = Math.floor(Math.random() * rawPart1Database.length); const updated = [...data.part1]; updated[indices.p1] = rawPart1Database[rnd]; setData(prev => ({ ...prev, part1: updated })); } 
+                else if (tab === 'p2') { const rnd = Math.floor(Math.random() * rawPart2Database.length); const updated = [...data.part2]; updated[indices.p2] = rawPart2Database[rnd]; setData(prev => ({ ...prev, part2: updated })); } 
+                else if (tab === 'p3') { const rnd = Math.floor(Math.random() * rawPart3Database.length); const updated = [...data.part3]; updated[indices.p3] = rawPart3Database[rnd]; setData(prev => ({ ...prev, part3: updated })); speakText(rawPart3Database[rnd], 0.6); }
+            };
+
+            const restartTab = (tabName) => { setIsCompleted(prev => ({ ...prev, [tabName]: false })); setIndices(prev => ({ ...prev, [tabName]: 0 })); setScores(prev => ({ ...prev, [tabName]: 0 })); setFeedbackState({ status: null, msg: '' }); };
+
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+                    if (e.code === 'Space') { e.preventDefault(); if (feedbackState.status === 'correct') { nextQuestion(activeTab); } else { toggleListening(); } }
+                };
+                window.addEventListener('keydown', handleKeyDown); return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [feedbackState, activeTab, indices]);
+
+            const handleAdminLogin = (e) => { e.preventDefault(); if (passInput === adminPassword) { setIsAdminAuth(true); setLoginError(''); setPassInput(''); } else { setLoginError('Mật khẩu không đúng!'); } };
+
+            const handleUpdateCounts = (p1, p2, p3) => {
+                const n1 = Math.max(10, Math.min(300, p1)); const n2 = Math.max(10, Math.min(300, p2)); const n3 = Math.max(10, Math.min(300, p3));
+                setData({ p1Count: n1, p2Count: n2, p3Count: n3, part1: generateQuestionsList(rawPart1Database, n1), part2: generateQuestionsList(rawPart2Database, n2), part3: generateQuestionsList(rawPart3Database, n3) });
+                setIndices({ p1: 0, p2: 0, p3: 0 }); setScores({ p1: 0, p2: 0, p3: 0 }); setIsCompleted({ p1: false, p2: false, p3: false });
+            };
+
+            const handleResetDefault = () => {
+                if (window.confirm("Khôi phục mặc định và xoá lịch sử học tập?")) {
+                    setData(initialRawData); setAdminPassword(ADMIN_PASSWORD_DEFAULT); setCompletedHistory({ p1: [], p2: [], p3: [] });
+                    setPassThreshold(30); setPerfectThreshold(60);
+                    localStorage.removeItem(STORAGE_KEY_DATA); localStorage.removeItem(STORAGE_KEY_PASS); localStorage.removeItem(STORAGE_KEY_HISTORY);
+                    localStorage.removeItem(STORAGE_KEY_PASS_THRESH); localStorage.removeItem(STORAGE_KEY_PERFECT_THRESH); 
+                    alert("Đã khôi phục thành công!");
+                }
+            };
+
+            return (
+                <div className="max-w-5xl mx-auto relative w-full">
+                    
+                    <header className="kid-card p-4 mb-6 flex flex-wrap items-center justify-between gap-3 bg-white shadow-md">
+                        <h1 className="text-xl sm:text-2xl font-black text-emerald-600 flex items-center gap-2"><span>📖</span> Ôn Tập Tiếng Việt 1 Tuần 16 - 30</h1>
+                        <nav className="flex flex-wrap gap-2">
+                            <button onClick={() => setActiveTab('p1')} className={`px-3 py-2 rounded-xl font-bold text-sm btn-3d ${activeTab === 'p1' ? 'bg-sky-500 text-white border-sky-700' : 'bg-sky-100 text-sky-600 border-sky-300'}`}>🔊 1. Đánh Vần</button>
+                            <button onClick={() => setActiveTab('p2')} className={`px-3 py-2 rounded-xl font-bold text-sm btn-3d ${activeTab === 'p2' ? 'bg-emerald-500 text-white border-emerald-700' : 'bg-emerald-100 text-emerald-600 border-emerald-300'}`}>📖 2. Đọc Câu</button>
+                            <button onClick={() => setActiveTab('p3')} className={`px-3 py-2 rounded-xl font-bold text-sm btn-3d ${activeTab === 'p3' ? 'bg-purple-500 text-white border-purple-700' : 'bg-purple-100 text-purple-600 border-purple-300'}`}>✍️ 3. Nghe & Gõ</button>
+                            <button onClick={() => setActiveTab('admin')} className={`px-3 py-2 rounded-xl font-bold text-sm btn-3d ${activeTab === 'admin' ? 'bg-slate-700 text-white border-slate-900' : 'bg-slate-200 text-slate-700 border-slate-400'}`}>🔒 Giáo Viên</button>
+                        </nav>
+                    </header>
+
+                    <main className="w-full space-y-6">
+                        {/* PHẦN 1: ĐÁNH VẦN */}
+                        {activeTab === 'p1' && !isCompleted.p1 && data.part1 && (
+                            <div className="max-w-xl mx-auto kid-card p-6 text-center w-full">
+                                <div className="flex justify-between items-center text-sm font-bold text-slate-400 mb-4">
+                                    <span>Câu {indices.p1 + 1} / {data.part1.length}</span>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => rollDiceNewQuestion('p1')} className="bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1.5 rounded-lg border border-amber-300 font-bold text-xs">🎲 Đổi từ mới</button>
+                                        <button onClick={() => setReviewModal({ open: true, part: 'p1' })} className="bg-sky-100 hover:bg-sky-200 text-sky-800 px-3 py-1.5 rounded-lg border border-sky-300 font-bold text-xs">📚 Ôn tập toàn bộ</button>
+                                    </div>
+                                    <span className="text-emerald-600 font-extrabold">Điểm: {scores.p1}</span>
+                                </div>
+                                <p className="text-xl font-black text-slate-700 mb-2">Bé hãy đánh vần to từ dưới đây:</p>
+                                <div className="text-5xl sm:text-6xl font-black text-sky-600 my-4 py-8 bg-sky-50 rounded-2xl border-2 border-sky-200 shadow-inner">{data.part1[indices.p1]?.word}</div>
+                                <button onClick={() => speakText(data.part1[indices.p1]?.spell)} className="mb-3 bg-sky-500 hover:bg-sky-400 text-white font-bold py-2.5 px-6 rounded-full btn-3d border-sky-700 inline-flex items-center gap-2 text-base">🔊 AI đọc đánh vần mẫu</button>
+                                <p className="text-sm text-purple-600 font-bold mb-6 bg-purple-50 py-2 px-4 rounded-xl border border-purple-200 inline-block">Gợi ý đánh vần: "{data.part1[indices.p1]?.spell}"</p>
+
+                                <div>
+                                    <button onClick={toggleListening} className={`w-20 h-20 rounded-full text-3xl text-white font-bold mx-auto flex items-center justify-center transition-all ${isListening ? 'bg-red-500 pulse-ring' : 'bg-pink-500 hover:bg-pink-400 btn-3d border-pink-700'}`}>{isListening ? '🎙️' : '🎤'}</button>
+                                    <p className="mt-2 text-sm font-bold text-slate-500">{isListening ? "AI đang nghe bé đọc..." : "Bấm Micro hoặc phím [SPACE] để đọc"}</p>
+                                </div>
+                                {isListening && <div className="mt-6 p-4 rounded-xl border-2 bg-sky-50 border-sky-200 text-sky-700 font-bold text-lg"><span>AI đang lắng nghe bé đọc</span><span className="dots-loading"></span></div>}
+                                {feedbackState.status === 'correct' && <div className="mt-6 p-4 rounded-2xl bg-green-50 border-2 border-green-200"><p className="text-green-600 font-black text-xl mb-3">{feedbackState.msg}</p><button onClick={() => nextQuestion('p1')} className="bg-green-500 text-white font-bold py-3 px-8 rounded-full btn-3d border-green-700 text-lg">➡️ Câu tiếp theo (Nhấn Phím Space)</button></div>}
+                                {feedbackState.status === 'wrong' && <div className="mt-6 p-3 rounded-xl bg-red-50 border-2 border-red-200 text-red-500 font-bold">{feedbackState.msg}</div>}
+                            </div>
+                        )}
+
+                        {/* PHẦN 2: ĐỌC CÂU (Tối đa 6 chữ) */}
+                        {activeTab === 'p2' && !isCompleted.p2 && data.part2 && (
+                            <div className="max-w-xl mx-auto kid-card p-6 text-center w-full">
+                                <div className="flex justify-between items-center text-sm font-bold text-slate-400 mb-4">
+                                    <span>Câu {indices.p2 + 1} / {data.part2.length}</span>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => rollDiceNewQuestion('p2')} className="bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1.5 rounded-lg border border-amber-300 font-bold text-xs">🎲 Đổi câu mới</button>
+                                        <button onClick={() => setReviewModal({ open: true, part: 'p2' })} className="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 px-3 py-1.5 rounded-lg border border-emerald-300 font-bold text-xs">📚 Ôn tập toàn bộ</button>
+                                    </div>
+                                    <span className="text-emerald-600 font-extrabold">Điểm: {scores.p2}</span>
+                                </div>
+                                <p className="text-xl font-black text-slate-700 mb-2">Bé hãy đọc to câu dưới đây:</p>
+                                <div className="text-3xl sm:text-4xl font-black text-emerald-700 my-6 py-8 px-4 bg-emerald-50 rounded-2xl border-2 border-emerald-200 shadow-inner leading-relaxed">{data.part2[indices.p2]}</div>
+                                <button onClick={() => speakText(data.part2[indices.p2])} className="mb-6 bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-2 px-5 rounded-full btn-3d border-emerald-700 inline-flex items-center gap-2 text-base">🔊 AI đọc mẫu</button>
+                                
+                                <div>
+                                    <button onClick={toggleListening} className={`w-20 h-20 rounded-full text-3xl text-white font-bold mx-auto flex items-center justify-center transition-all ${isListening ? 'bg-red-500 pulse-ring' : 'bg-emerald-600 hover:bg-emerald-500 btn-3d border-emerald-800'}`}>{isListening ? '🎙️' : '🎤'}</button>
+                                    <p className="mt-2 text-sm font-bold text-slate-500">{isListening ? "AI đang nghe bé đọc..." : "Bấm Micro hoặc phím [SPACE] để đọc"}</p>
+                                </div>
+                                {isListening && <div className="mt-6 p-4 rounded-xl border-2 bg-emerald-50 border-emerald-200 text-emerald-700 font-bold text-lg"><span>AI đang lắng nghe bé đọc câu</span><span className="dots-loading"></span></div>}
+                                {feedbackState.status === 'correct' && <div className="mt-6 p-4 rounded-2xl bg-green-50 border-2 border-green-200"><p className="text-green-600 font-black text-xl mb-3">{feedbackState.msg}</p><button onClick={() => nextQuestion('p2')} className="bg-green-500 text-white font-bold py-3 px-8 rounded-full btn-3d border-green-700 text-lg">➡️ Câu tiếp theo (Nhấn Phím Space)</button></div>}
+                                {feedbackState.status === 'wrong' && <div className="mt-6 p-3 rounded-xl bg-red-50 border-2 border-red-200 text-red-500 font-bold">{feedbackState.msg}</div>}
+                            </div>
+                        )}
+
+                        {/* PHẦN 3: NGHE & GÕ */}
+                        {activeTab === 'p3' && !isCompleted.p3 && data.part3 && (
+                            <div className="flex flex-col lg:flex-row gap-6 w-full justify-center items-start">
+                                <div className="flex-1 w-full max-w-xl mx-auto kid-card p-6 text-center shadow-lg border-4 border-purple-300">
+                                    <div className="flex justify-between items-center text-sm font-bold text-slate-400 mb-4">
+                                        <span>Câu {indices.p3 + 1} / {data.part3.length}</span>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => rollDiceNewQuestion('p3')} className="bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1.5 rounded-lg border border-amber-300 font-bold text-xs">🎲 Đổi câu mới</button>
+                                            <button onClick={() => setReviewModal({ open: true, part: 'p3' })} className="bg-purple-100 hover:bg-purple-200 text-purple-800 px-3 py-1.5 rounded-lg border border-purple-300 font-bold text-xs">📚 Ôn tập toàn bộ</button>
+                                        </div>
+                                        <span className="text-emerald-600 font-extrabold">Điểm: {scores.p3}</span>
+                                    </div>
+                                    <p className="text-2xl font-black text-slate-700 mb-4">Lắng nghe và gõ lại:</p>
+                                    <button onClick={() => speakText(data.part3[indices.p3], 0.6)} className="mb-8 bg-purple-600 hover:bg-purple-500 text-white font-bold py-4 px-8 rounded-full btn-3d border-purple-800 inline-flex items-center gap-3 text-xl pulse-ring">🔊 Nghe AI đọc lại </button>
+                                    <form onSubmit={checkP3Answer} className="space-y-6 w-full mx-auto">
+                                        <input type="text" value={p3Input} onChange={(e) => setP3Input(e.target.value)} placeholder="Gõ câu trả lời..." className="w-full p-5 border-4 border-purple-300 rounded-2xl font-black text-center text-2xl sm:text-3xl text-slate-800 focus:border-purple-600 outline-none shadow-inner" autoFocus />
+                                        <button type="submit" className="w-full bg-purple-600 hover:bg-purple-500 text-white font-black py-4 rounded-2xl btn-3d border-purple-800 text-xl">✔️ Kiểm Tra</button>
+                                    </form>
+                                    {feedbackState.status === 'correct' && <div className="mt-8 p-5 rounded-2xl bg-green-50 border-2 border-green-200"><p className="text-green-600 font-black text-2xl mb-4">{feedbackState.msg}</p><button onClick={() => nextQuestion('p3')} className="bg-green-500 text-white font-bold py-4 px-10 rounded-full btn-3d border-green-700 text-xl">➡️ Tiếp theo (Space)</button></div>}
+                                    {feedbackState.status === 'wrong' && <div className="mt-6 p-4 rounded-xl bg-red-50 border-2 border-red-200 text-red-500 font-bold text-lg">{feedbackState.msg}</div>}
+                                </div>
+
+                                {/* Hướng dẫn gõ Telex */}
+                                <div className="kid-card p-5 bg-purple-50 border-purple-200 w-full lg:w-80 shrink-0">
+                                    <h3 className="text-lg font-black text-purple-800 border-b border-purple-200 pb-2 mb-3 flex items-center gap-2">
+                                        <span>⌨️</span> Hướng Dẫn Gõ Telex
+                                    </h3>
+                                    <div className="space-y-2 text-sm font-bold text-slate-700">
+                                        <div className="p-2 bg-white rounded-lg border border-purple-100 flex justify-between">
+                                            <span>Dấu Sắc ( s )</span>
+                                            <span className="text-purple-600">a + s = á</span>
+                                        </div>
+                                        <div className="p-2 bg-white rounded-lg border border-purple-100 flex justify-between">
+                                            <span>Dấu Huyền ( f )</span>
+                                            <span className="text-purple-600">a + f = à</span>
+                                        </div>
+                                        <div className="p-2 bg-white rounded-lg border border-purple-100 flex justify-between">
+                                            <span>Dấu Hỏi ( r )</span>
+                                            <span className="text-purple-600">a + r = ả</span>
+                                        </div>
+                                        <div className="p-2 bg-white rounded-lg border border-purple-100 flex justify-between">
+                                            <span>Dấu Ngã ( x )</span>
+                                            <span className="text-purple-600">a + x = ã</span>
+                                        </div>
+                                        <div className="p-2 bg-white rounded-lg border border-purple-100 flex justify-between">
+                                            <span>Dấu Nặng ( j )</span>
+                                            <span className="text-purple-600">a + j = ạ</span>
+                                        </div>
+                                        <div className="p-2 bg-white rounded-lg border border-purple-100 flex justify-between">
+                                            <span>Chữ Â / Ê / Ô</span>
+                                            <span className="text-purple-600">aa, ee, oo</span>
+                                        </div>
+                                        <div className="p-2 bg-white rounded-lg border border-purple-100 flex justify-between">
+                                            <span>Chữ Ă / Ơ / Ư</span>
+                                            <span className="text-purple-600">aw, ow, uw</span>
+                                        </div>
+                                        <div className="p-2 bg-white rounded-lg border border-purple-100 flex justify-between">
+                                            <span>Chữ Đ</span>
+                                            <span className="text-purple-600">dd = đ</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Màn hình hoàn thành bài */}
+                        {['p1', 'p2', 'p3'].map(tab => (
+                            activeTab === tab && isCompleted[tab] && (
+                                <div key={tab} className="max-w-xl mx-auto kid-card p-8 text-center bg-white w-full shadow-lg">
+                                    <div className="text-6xl mb-4">🏆</div>
+                                    <h2 className="text-3xl font-black text-slate-800 mb-2">Hoàn Thành!</h2>
+                                    <p className="text-xl font-bold text-emerald-600 mb-6">Bé đạt {scores[tab]} / {data[`${tab}Count`]} điểm</p>
+                                    <button onClick={() => restartTab(tab)} className="bg-sky-500 text-white font-bold py-3 px-8 rounded-full btn-3d border-sky-700 text-lg">🔄 Làm lại từ đầu</button>
+                                </div>
+                            )
+                        ))}
+
+                        {/* Giao diện Admin / Giáo viên */}
+                        {activeTab === 'admin' && (
+                            <div className="kid-card p-6 bg-white w-full max-w-xl mx-auto">
+                                {!isAdminAuth ? (
+                                    <div className="text-center py-6 space-y-4">
+                                        <div className="text-5xl">🔒</div>
+                                        <h2 className="text-2xl font-black text-slate-800">Khu Vực Giáo Viên</h2>
+                                        <form onSubmit={handleAdminLogin} className="space-y-4 max-w-xs mx-auto pt-2">
+                                            <input type="password" value={passInput} onChange={(e) => setPassInput(e.target.value)} placeholder="Nhập mật khẩu..." className="w-full p-3 border-2 border-slate-300 rounded-xl font-bold text-center focus:border-slate-600 outline-none" autoFocus />
+                                            {loginError && <p className="text-red-500 text-sm font-bold">{loginError}</p>}
+                                            <button type="submit" className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl btn-3d border-slate-950">🔓 Xác nhận</button>
+                                        </form>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        <div className="flex justify-between items-center border-b pb-3">
+                                            <h2 className="text-2xl font-black text-slate-800">⚙️ Cấu Hình</h2>
+                                            <div className="flex gap-2">
+                                                <button onClick={handleResetDefault} className="text-xs bg-amber-100 hover:bg-amber-200 text-amber-700 font-bold px-3 py-1.5 rounded-lg border border-amber-300">🔄 Khôi phục</button>
+                                                <button onClick={() => setIsAdminAuth(false)} className="text-xs bg-red-100 hover:bg-red-200 text-red-600 font-bold px-3 py-1.5 rounded-lg border border-red-300">🔒 Khóa lại</button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="bg-emerald-50 p-4 rounded-2xl border-2 border-emerald-200 space-y-4">
+                                            <h3 className="font-black text-emerald-800">📊 Số lượng câu hỏi (10-300):</h3>
+                                            <div className="flex justify-between"><span className="font-bold text-sm">Phần 1 (Đánh vần):</span><input type="number" min="10" max="300" value={data.p1Count} onChange={(e) => handleUpdateCounts(Number(e.target.value), data.p2Count, data.p3Count)} className="w-24 p-1 border-2 rounded text-center" /></div>
+                                            <div className="flex justify-between"><span className="font-bold text-sm">Phần 2 (Đọc câu):</span><input type="number" min="10" max="300" value={data.p2Count} onChange={(e) => handleUpdateCounts(data.p1Count, Number(e.target.value), data.p3Count)} className="w-24 p-1 border-2 rounded text-center" /></div>
+                                            <div className="flex justify-between"><span className="font-bold text-sm">Phần 3 (Nghe & gõ):</span><input type="number" min="10" max="300" value={data.p3Count} onChange={(e) => handleUpdateCounts(data.p1Count, data.p2Count, Number(e.target.value))} className="w-24 p-1 border-2 rounded text-center" /></div>
+                                        </div>
+
+                                        <div className="bg-sky-50 p-4 rounded-2xl border-2 border-sky-200 space-y-4 mt-4">
+                                            <h3 className="font-black text-sky-800">🎯 Cài đặt ngưỡng chấm đọc (%):</h3>
+                                            <div className="flex justify-between items-center">
+                                                <span className="font-bold text-sm text-slate-700">Mức Đạt (Pass):</span>
+                                                <input type="number" min="10" max="100" value={passThreshold} onChange={(e) => setPassThreshold(Number(e.target.value))} className="w-24 p-1 border-2 rounded text-center" />
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="font-bold text-sm text-slate-700">Mức Hoàn hảo (Perfect):</span>
+                                                <input type="number" min="10" max="100" value={perfectThreshold} onChange={(e) => setPerfectThreshold(Number(e.target.value))} className="w-24 p-1 border-2 rounded text-center" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </main>
+
+                    {/* Modals Popup */}
+                    {showMilestone && (
+                        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4">
+                            <div className="bg-white rounded-3xl p-8 text-center animate-bounce shadow-2xl border-4 border-yellow-400">
+                                <div className="text-8xl mb-4">🌟</div>
+                                <h2 className="text-4xl font-black text-red-500 mb-4">CHÚC MỪNG BÉ!</h2>
+                                <p className="text-2xl font-bold text-emerald-600">Bé đã xuất sắc hoàn thành thêm 10 câu!</p>
+                                <button onClick={() => setShowMilestone(false)} className="mt-6 bg-yellow-500 hover:bg-yellow-400 text-white font-black py-3 px-8 rounded-full btn-3d text-xl border-yellow-700">Tiếp tục nào!</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {reviewModal.open && (
+                        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+                            <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[85vh] p-6 overflow-y-auto shadow-2xl border-4 border-emerald-300">
+                                <div className="flex justify-between items-center border-b pb-3 mb-4 sticky top-0 bg-white z-10">
+                                    <h3 className="text-2xl font-black text-slate-800 flex items-center gap-2">
+                                        <span>📚</span> Bảng Ôn Tập Toàn Bộ
+                                        <span className="text-sm font-bold text-emerald-600 bg-emerald-100 px-2 py-1 rounded-lg">({reviewModal.part === 'p1' ? rawPart1Database.length : reviewModal.part === 'p2' ? rawPart2Database.length : rawPart3Database.length} mục)</span>
+                                    </h3>
+                                    <button onClick={() => setReviewModal({ open: false, part: null })} className="text-gray-500 hover:text-red-500 font-black text-3xl leading-none">✖</button>
+                                </div>
+                                
+                                <div className={`grid gap-3 ${reviewModal.part === 'p1' ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2'}`}>
+                                    {reviewModal.part === 'p1' && rawPart1Database.map((item, idx) => (
+                                        <div key={idx} className={`p-3 rounded-xl border-2 flex flex-col justify-center items-center text-center gap-2 ${completedHistory.p1.includes(cleanStr(item.word)) ? 'bg-green-50 border-green-300' : 'bg-sky-50 border-sky-200'}`}>
+                                            <p className={`font-black text-lg ${completedHistory.p1.includes(cleanStr(item.word)) ? 'text-green-700' : 'text-sky-800'}`}>{item.word} {completedHistory.p1.includes(cleanStr(item.word)) && <span className="text-sm">✅</span>}</p>
+                                            <button onClick={() => speakText(item.spell)} className={`w-full ${completedHistory.p1.includes(cleanStr(item.word)) ? 'bg-green-500' : 'bg-sky-500'} text-white text-xs px-2 py-1.5 rounded-lg font-bold`}>🔊 Nghe đánh vần</button>
+                                        </div>
+                                    ))}
+                                    {reviewModal.part === 'p2' && rawPart2Database.map((item, idx) => (
+                                        <div key={idx} className={`p-3 rounded-xl border-2 flex justify-between items-center ${completedHistory.p2.includes(item) ? 'bg-green-50 border-green-300' : 'bg-emerald-50 border-emerald-200'}`}>
+                                            <p className={`font-black text-base flex items-center gap-2 ${completedHistory.p2.includes(item) ? 'text-green-700' : 'text-emerald-800'}`}>{item} {completedHistory.p2.includes(item) && <span className="text-sm">✅</span>}</p>
+                                            <button onClick={() => speakText(item)} className={`${completedHistory.p2.includes(item) ? 'bg-green-500' : 'bg-emerald-500'} text-white text-xs px-3 py-1.5 rounded-lg font-bold shrink-0 ml-2`}>🔊 Nghe</button>
+                                        </div>
+                                    ))}
+                                    {reviewModal.part === 'p3' && rawPart3Database.map((item, idx) => (
+                                        <div key={idx} className={`p-3 rounded-xl border-2 flex justify-between items-center ${completedHistory.p3.includes(item) ? 'bg-green-50 border-green-300' : 'bg-purple-50 border-purple-200'}`}>
+                                            <p className={`font-black text-base flex items-center gap-2 ${completedHistory.p3.includes(item) ? 'text-green-700' : 'text-purple-800'}`}>{item} {completedHistory.p3.includes(item) && <span className="text-sm">✅</span>}</p>
+                                            <button onClick={() => speakText(item, 0.6)} className={`${completedHistory.p3.includes(item) ? 'bg-green-500' : 'bg-purple-500'} text-white text-xs px-3 py-1.5 rounded-lg font-bold shrink-0 ml-2`}>🔊 Nghe</button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
